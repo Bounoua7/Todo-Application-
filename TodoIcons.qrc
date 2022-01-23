@@ -1,0 +1,14 @@
+<RCC>
+    <qresource prefix="/new/Icons"/>
+    <qresource prefix="/">
+        <file>add_list.png</file>
+        <file>pending.png</file>
+        <file>Aboutt.png</file>
+        <file>exit (3).png</file>
+        <file>save (2).png</file>
+        <file>save_as.png</file>
+        <file>taskdone.png</file>
+        <file>today.png</file>
+         <file>hide (2).png</file>
+    </qresource>
+</RCC>
