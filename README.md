@@ -1,11 +1,11 @@
-                                                                                       | 18/01/2022 |
+                                                                                       | 20/01/2022 |
 
 <h1 style="color:#0B615E;  text-align:center; vertical-align: middle; padding:40px 0; margin-top:30px " > To Do Application </h1>
              </br>
 <h2 style="color:#0B615E;">
 Create ToDo Application using containers.
-<li>TodoApp.</li>
-<li>database.</li>
+<li> <a href="#Todo-id">Todo App</a></li>
+<li><a href="#TodoMvc-id">Todo App Mvc version </a></li>
 
 </h2>
 <h4 style="color:#088A85;">
@@ -92,12 +92,24 @@ When the user create a new task, the application must pop up a dialog for the us
 
 
 ------------
+   <h3 style="color:#088A85" id="Todo-id" >Todo App</h3>
 
 
 <h5 style="color:#FF8000"> The main class code</h5>
 
 ```c++
 
+#include "mainwindow.h"
+
+#include <QApplication>
+
+int main(int argc, char *argv[])
+{
+    QApplication a(argc, argv);
+    MainWindow w;
+    w.show();
+    return a.exec();
+}
 
 
 ```
@@ -105,13 +117,212 @@ When the user create a new task, the application must pop up a dialog for the us
 
 
 ```c++
+#ifndef MAINWINDOW_H
+#define MAINWINDOW_H
+#include"addtask.h"
+#include <QMainWindow>
 
+QT_BEGIN_NAMESPACE
+namespace Ui { class MainWindow; }
+QT_END_NAMESPACE
+
+class MainWindow : public QMainWindow
+{
+    Q_OBJECT
+
+public:
+    MainWindow(QWidget *parent = nullptr);
+    ~MainWindow();
+    void chargerTasks(QString myFile);//method to save the content of each listwidget
+
+private slots:
+
+    void on_actionNew_Task_triggered();
+
+    void on_actionExit_triggered();
+
+    void on_actionPending_Task_triggered();
+
+    void on_actionFinished_Task_triggered();
+
+    void on_actionAbout_Todo_Application_triggered();
+    void on_actionHide_finished_Tasks_triggered();
+private:
+
+    Ui::MainWindow *ui;
+    void addelt();
+};
+#endif // MAINWINDOW_H
 
 
 ```
 <h5 style="color:#FF8000">mainwindow.cpp file:</h5>
 
 ```c++
+#include "mainwindow.h"
+#include "ui_mainwindow.h"
+#include"addtask.h"
+#include"QInputDialog"
+#include"QDebug"
+#include"QDate"
+#include"QTime"
+#include <QFile>
+#include<QString>
+#include<QListWidgetItem >
+#include<QTextStream>
+#include<QMessageBox>
+#include<QIcon>
+MainWindow::MainWindow(QWidget *parent)
+    : QMainWindow(parent)
+    , ui(new Ui::MainWindow)
+{
+    ui->setupUi(this);
+    this->setStyleSheet("background-color:#FFEBCD");
+    this->setWindowTitle("TodoApp");
+   chargerTasks("C:\\Users\\oum\\Downloads\\cities_coordinates\\TodoApp\\file.txt");
+   connect(ui->actionNew_Task, &QAction::triggered, this, &MainWindow::addelt);
+
+}
+
+MainWindow::~MainWindow()
+{
+    delete ui;
+}
+
+
+
+
+
+void MainWindow::on_actionNew_Task_triggered()
+{
+
+
+}
+
+void MainWindow::addelt(){
+
+    addtask D ;
+    D.setModal(false);
+    D.exec();
+
+
+    QString newTask ;
+    // Get the line edit text
+    QString description = D.getDescription();
+    if (description!=NULL){
+        //Get Finished bool
+        QString finished = D.getFinished();
+    // Get current date
+         QDate curDate = D.getDueDate();
+        // QString date = D.getDueDate().toString();
+        newTask = description +"\t Due:"+ curDate.toString() ;
+        QString Tag= D.getTag();
+        if(Tag == "Work")
+            Tag="0";
+        else if (Tag == "Life")
+            Tag="1";
+        else
+            Tag="2";
+         if (finished=="finished" || curDate < QDate::currentDate())
+         {
+             newTask = "Finished\t"+newTask+"\tTag :"+Tag+"\n";
+               ui->listWidget_2->addItem(new QListWidgetItem(QIcon(":/taskdone.png"),newTask));
+}
+         else if (curDate == QDate::currentDate()){
+              newTask = "For Today\t"+newTask+"\tTag :"+Tag+"\n";
+                ui->listWidget->addItem(new QListWidgetItem(QIcon(":/today.png"),newTask));
+         }
+         else{
+                 newTask = "Pending\t"+newTask+"\tTag :"+Tag+"\n";
+                ui->listWidget_3->addItem(new QListWidgetItem(QIcon(":/pending.png"),newTask));
+
+         }
+    }
+    QString fichier = "C:\\Users\\oum\\Downloads\\cities_coordinates\\TodoApp\\file.txt";
+
+    QFile file(fichier); // Appel du constructeur de la classe QFile
+
+    if (file.open(QIODevice::Append | QIODevice::Text)) {
+    // Si l'ouverture du fichier en écriture à réussie
+
+    // écrire dans le fichier en utilisant un flux :
+    QTextStream out(&file);
+    out << newTask;
+
+    // Fermer le fichier
+    file.close();
+    }
+
+}
+
+
+void MainWindow::chargerTasks(QString myFile){
+
+    QFile fichier(myFile);
+
+    if(fichier.open(QIODevice::ReadOnly | QIODevice::Text)) // ReadOnly on lecture // ::Text si le fichier est deja ouvert
+    {
+        QTextStream flux(&fichier);
+        while(!flux.atEnd())
+        {
+            QString temp = flux.readLine();
+            if(  temp.startsWith("Finished"))
+            ui->listWidget_3->addItem(temp);
+            else if( temp.startsWith("Pending"))
+                    ui->listWidget_2->addItem(temp);
+            else
+                ui->listWidget->addItem(temp);
+        }
+        fichier.close();
+    }
+
+
+
+    }
+
+
+
+
+
+
+void MainWindow::on_actionPending_Task_triggered()
+{
+
+    if(ui->listWidget_3->isVisible()){
+        ui->listWidget_3->hide();}
+        else{
+          ui->listWidget_3->show();
+        }
+
+}
+
+
+void MainWindow::on_actionFinished_Task_triggered()
+{
+    if(ui->listWidget_2->isVisible()){
+        ui->listWidget_2->hide();
+       } else{
+          ui->listWidget_2->show();
+        }
+}
+
+void MainWindow::on_actionExit_triggered()
+{
+    qApp->exit();
+}
+
+void MainWindow::on_actionAbout_Todo_Application_triggered()
+{
+     QMessageBox::information(this,"About","To Do Application");
+}
+
+
+void MainWindow::on_actionHide_finished_Tasks_triggered()
+{
+    ui->listWidget_2->setVisible(false);
+
+}
+
 
 
  ```
@@ -119,6 +330,7 @@ When the user create a new task, the application must pop up a dialog for the us
 
 
 
+![result](https://user-images.githubusercontent.com/86807424/150687470-e7041c45-9b8d-42ac-abbb-4b669ee2457c.png)
 
 
 
@@ -126,68 +338,199 @@ When the user create a new task, the application must pop up a dialog for the us
 
 
 
-   <h3 style="color:#088A85;" id="spreadsheet-id" > SpreadSheet </h3>
+   <h3 style="color:#088A85;" id="spreadsheet-id" > add task dialog </h3>
+
+<p> we press add task and the Qdialog show up</p>
+
+
+![dialog](https://user-images.githubusercontent.com/86807424/150687687-5cc31f89-c9a3-4899-b22c-6b51376fc3c2.png)
 
 
 
-<h5 style="color:#FF8000"> main file:</h5>
-
-```c++
-
-```
-
-<h5 style="color:#FF8000"> spreadsheet.h file:</h5>
-
-```c++
-
-
-
-```
-
-<h5 style="color:#FF8000">spreadsheet.cpp file:</h5> 
-
+<h5 style="color:#FF8000"> addtask.h file:</h5>
 
 ```c++
 
+#ifndef ADDTASK_H
+#define ADDTASK_H
 
+#include <QDialog>
 
-```
+namespace Ui {
+class addtask;
+}
 
+class addtask : public QDialog
+{
+    Q_OBJECT
 
-   <h3 style="color:#088A85;" id="Calcul-id" >go dialog</h3>
-
-
-<h5 style="color:#FF8000"> godialog.cpp :</h5>
-
-```c++
-
-
-```
-
-
-
-
- <h5 style="color:#FF8000"> finddialog.h</h5>
-
-```c++
-
-
-
-```
+public:
+    explicit addtask(QWidget *parent = nullptr);
+    ~addtask();
+    QString getDescription();
+    QString getTag();
+    QString getFinished();
+    QDate getDueDate();
+    void showEvent(QShowEvent * event);
 
 
 
 
- <h5 style="color:#FF8000"> finddialog.cpp</h5>
+private slots:
 
-```c++
+    void on_pushButton_clicked();
+
+private:
+    Ui::addtask *ui;
+};
+
+#endif // ADDTASK_H
 
 
 
 
 ```
+
+<h5 style="color:#FF8000">addtask.cpp file:</h5> 
+
+
+```c++
+
+#include "addtask.h"
+#include "ui_addtask.h"
+
+addtask::addtask(QWidget *parent) :
+    QDialog(parent),
+    ui(new Ui::addtask)
+{
+    ui->setupUi(this);
+    this->setStyleSheet("background-color:#A9A9A9");
+    this->setWindowTitle("Addtask");
+
+}
+
+
+
+void addtask::showEvent(QShowEvent * event)
+{
+    QDate date = QDate::currentDate();
+    ui->dateEdit->setDate(date); // sets the current date to date edit.
+
+    QDialog::showEvent(event);
+}
+
+QString addtask::getDescription(){
+    return ui->lineEdit->text();
+
+}
+QString addtask::getFinished(){
+    if (ui->checkBox->isChecked())
+       return "finished";
+    else
+        return "pending";
+}
+QString addtask::getTag(){
+
+    return ui->comboBox->currentText();
+
+
+}
+QDate addtask::getDueDate(){
+
+    return ui->dateEdit->date();
+
+}
+
+addtask::~addtask()
+{
+    delete ui;
+}
+
+void addtask::on_pushButton_clicked()
+{
+    accept();
+}
+
+
+
+```
+
+<h5 style="color:#FF8000">The result :</h5>
+
+
+
+
+
+
+
+
+https://user-images.githubusercontent.com/86807424/150687498-11507aeb-6de7-421f-869e-417436bda176.mp4
+
+
+
+
+
+<p> file.txt is where the tasks are saved.</p>
+
+
+![saved tasks](https://user-images.githubusercontent.com/86807424/150687881-b45639bd-7b89-40e3-85df-b3f140a16e98.png)
+
+
+
+
+
+
+
+
+
+
+   <h3 style="color:#088A85" id="TodoMvc-id" >Todo App Mvc version </h3>
+
+
+
+<h5 style="color:#FF8000">TodoMvc.cpp :</h5>
+
+```c++
+
+
+```
+
+
+
+
+ <h5 style="color:#FF8000"> TodoMvc.h</h5>
+
+```c++
+
+
+
+```
+
+
+
+
+ <h5 style="color:#FF8000"> dialog.cpp</h5>
+
+```c++
+
+
+
+
+```
+ <h5 style="color:#FF8000"> dialog.h</h5>
+
+```c++
+
+
+
+
+```
+
 
 <h5 style="color:#FF8000">result :</h5>
+
+
+
 
 
 
